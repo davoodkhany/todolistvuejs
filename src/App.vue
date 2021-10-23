@@ -42,7 +42,13 @@
     </ul>
   </div>
   <div
-    class=" tab-content flex-column justify-content-center d-flex align-items-center"
+    class="
+      tab-content
+      flex-column
+      justify-content-center
+      d-flex
+      align-items-center
+    "
     id="pills-tabContent"
   >
     <div
@@ -51,7 +57,11 @@
       role="tabpanel"
       aria-labelledby="pills-home-tab"
     >
-      <Todo :items="todos" @delete-todo="DeleteTodo" @update-todo="update"></Todo>
+      <Todo
+        :items="todos"
+        @delete-todo="DeleteTodo"
+        @update-todo="update"
+      ></Todo>
     </div>
   </div>
 </template>
@@ -61,7 +71,7 @@ import NavBar from "./components/NavBar.vue";
 import AddToDo from "./components/AddToDo.vue";
 import Content from "./components/Countent.vue";
 import Todo from "./components/Todo.vue";
-
+import axios from "Axios";
 export default {
   components: {
     NavBar,
@@ -86,11 +96,42 @@ export default {
       ],
     };
   },
+  created(){
+    axios.get('https://vuejs-ca936-default-rtdb.europe-west1.firebasedatabase.app/todo.json')
+    .then( ({data}) => {
+      let todos = Object.entries(data).map(([key,value]) => {
+        return {
+          key,
+          ...value
+        }
+      })
+console.log(todos);
+      // this.todos = todos;
+    })
+    .catch(err => console.log(err))
+  },
   methods: {
     CreateTodo(value) {
-     this.todos.push(
-       {key:Date.now(), done: true, text:value},
-     )
+      
+      let todo ={
+      done: true, 
+      text:value
+      }
+
+      axios.post('https://vuejs-ca936-default-rtdb.europe-west1.firebasedatabase.app/todo.json', {todo})
+      .then(res =>
+
+        this.todos.push({
+          ... todo,
+          key:res.data.name
+        })
+
+      )
+      .catch(res => console.log(res))
+
+    //  this.todos.push(
+    //    {key:Date.now(), },
+    //  )
     },
      DeleteTodo(index){
        this.todos = this.todos.filter(todo => todo.key != index)
@@ -101,9 +142,12 @@ export default {
        
         this.todos = this.todos.map((todo) => {
          if(todo.key == index){
+           
            return {
              ... todo,
             text :value
+
+            
            }
          }
             return todo
